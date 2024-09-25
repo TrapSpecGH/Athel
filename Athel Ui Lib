@@ -1,0 +1,91 @@
+local UILibrary = {}
+
+function UILibrary:CreateUI(player, enableLoadingScreen)
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.IgnoreGuiInset = true
+    screenGui.Parent = player:WaitForChild("PlayerGui")
+
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(0.4, 0, 0.4, 0)
+    frame.Position = UDim2.new(0.3, 0, 0.3, 0)
+    frame.BackgroundColor3 = Color3.new(0.4, 0.4, 0.4)
+    frame.Parent = screenGui
+
+    local openButton = Instance.new("TextButton")
+    openButton.Size = UDim2.new(0.8, 0, 0.2, 0)
+    openButton.Position = UDim2.new(0.1, 0, 0.4, 0)
+    openButton.Text = "Open"
+    openButton.TextScaled = true
+    openButton.Parent = frame
+
+    local loadingScreen
+    if enableLoadingScreen then
+        loadingScreen = Instance.new("Frame")
+        loadingScreen.Size = UDim2.new(1, 0, 1, 0)
+        loadingScreen.Position = UDim2.new(0, 0, 0, 0)
+        loadingScreen.BackgroundColor3 = Color3.new(0, 0, 0)
+        loadingScreen.Visible = false
+        loadingScreen.Parent = screenGui
+
+        local loadingText = Instance.new("TextLabel")
+        loadingText.Size = UDim2.new(0.5, 0, 0.2, 0)
+        loadingText.Position = UDim2.new(0.25, 0, 0.4, 0)
+        loadingText.Text = "Loading..."
+        loadingText.TextColor3 = Color3.new(1, 1, 1)
+        loadingText.BackgroundColor3 = Color3.new(0.4, 0.4, 0.4)
+        loadingText.Parent = loadingScreen
+
+        local borderText = Instance.new("TextLabel")
+        borderText.Size = UDim2.new(0, 0, 0, 0)
+        borderText.Position = UDim2.new(0.5, -loadingText.Size.X.Offset / 2, 0.2, 0)
+        borderText.Text = "Welcome To Athel"
+        borderText.TextColor3 = Color3.new(1, 1, 1)
+        borderText.Parent = loadingScreen
+    end
+
+    local dragging
+    local dragStart
+    local startPos
+
+    local function updateInput(input)
+        if dragging then
+            local delta = input.Position - dragStart
+            frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        end
+    end
+
+    local function startDrag(input)
+        dragging = true
+        dragStart = input.Position
+        startPos = frame.Position
+
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+
+    frame.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            startDrag(input)
+        end
+    end)
+
+    game:GetService("UserInputService").InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+            updateInput(input)
+        end
+    end)
+
+    openButton.MouseButton1Click:Connect(function()
+        frame.Visible = false
+        if loadingScreen then
+            loadingScreen.Visible = true 
+            wait(3)
+            loadingScreen.Visible = false
+        end
+    end)
+end
+
+return UILibrary
